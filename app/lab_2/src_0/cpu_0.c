@@ -78,9 +78,6 @@ int main()
 	unsigned char* sem_3 = shared+2;
 	unsigned char* sem_4 = shared+3;
 	*sem_1 = *(sem_2) = *(sem_3) = *(sem_4) = 0;
-	
-	//unsigned char* smth = shared+5000; //used to test memory extent
-	//*smth = 42;
   
 	char current_image=0, first_exec = 1;
 	char done_1 = 0, done_2 = 0, done_3 = 0, done_4 = 0;
@@ -95,11 +92,6 @@ int main()
 	char number_of_images=3;
 	unsigned char* img_array[3] = {img1_32_32, img2_32_32, img3_32_32};
 	#endif
-	
-	////prints to test memory extent
-	//printf("There's ");
-	//printf("%d",*smth);
-	//printf(" at address 5000!\n");
   
 	while (TRUE) {
 		/* Extract the x and y dimensions of the picture */
@@ -119,8 +111,6 @@ int main()
 		sram2sm_p3(img_array[current_image]);
 		
 		splitImage(i, j, shared+5000);
-		
-		//printf("0!\n"); //semaphore test print statement
 		
 		*sem_1 = *(sem_2) = *(sem_3) = *(sem_4) = 1; //release all semaphores
 		
@@ -146,14 +136,13 @@ int main()
 		}
 		
 		/* Print ASCII image */
-		int ascii_x = j/2-2, ascii_size = (*(shared+5009))*ascii_x;
-		
 		if(DEBUG){
+			int ascii_x = j/2-2, ascii_size = (*(shared+5009))*ascii_x;
 			printf("---- ASCII Image ----\n");
 			int z = 0;
 			
-			while(z < /*size4*/ascii_size){
-				printf("%c", /*asciiImage[z]*/*(shared+6000+z));
+			while(z < ascii_size){
+				printf("%c", *(shared+6000+z));
 				printf("%c", ' ');
 				if((z+1)%ascii_x == 0 && z > 0)
 					printf("\n");
@@ -162,8 +151,6 @@ int main()
 			
 			printf("\n\n");
 		}
-		
-		//delay(1000); //semaphore test wait
 		
 		/* Reset registers of completed CPUs */
 		done_1 = done_2 = done_3 = done_4 = 0;

@@ -1,8 +1,5 @@
-//#include <stdio.h>
-#include "system.h"
-//#include "io.h"
 #include "sys/alt_stdio.h"
-
+#include "system.h"
 #define TRUE 1
 
 /* Variables */
@@ -19,11 +16,9 @@ void control(int a){
 }
 
 void grayscale(int row, int col, unsigned char *image, unsigned char *grayImage){
-	//float aux[row][col];
 	int i = 0, j = 0, x = row*col*3;	
 	
 	while(i < x){
-		//grayImage[j] = image[i]*0.3125 + image[i+1]*0.5625 + image[i+2]*0.125; //change these floating point operations into bitwise
 		grayImage[j] = (image[i]*5)/16 + (image[i+1]*9)/16 + image[i+2]/8;
 		i = i+3;
 		j++;
@@ -56,24 +51,24 @@ void resize(int x1, int y1, unsigned char* grayImage, unsigned char* resizedImag
 void sobel(int x2, int y2, unsigned char* image, unsigned char* edgeImage){
 	int kx[9] = {-1,0,1,-2,0,2,-1,0,1};
 	int ky[9] = {1,2,1,0,0,0,-1,-2,-1};
-	int i = 0, j = 0, z = 1, f = 1, /*size = x2*y2,*/ limit = (x2-2)*(y2-2)/*size - 2*y2*/, col = y2;
+	int i = 0, j = 0, z = 1, f = 1, limit = (x2-2)*(y2-2), col = y2;
 	unsigned char gx = 0, gy = 0, g = 0;
 	int newLine = 1;
 	while(j < limit){
-		gx = image[i]*kx[0] + /*image[i+1]*kx[1] +*/ image[i+2]*kx[2]
-		   + image[i+col]*kx[3] + /*image[i+col+1]*kx[4] +*/ image[i+col+2]*kx[5]
-		   + image[i+(2*col)]*kx[6] + /*image[i+(2*col)+1]*kx[7] +*/ image[i+(2*col)+2]*kx[8];
+		gx = image[i]*kx[0] + image[i+2]*kx[2]
+		   + image[i+col]*kx[3] + image[i+col+2]*kx[5]
+		   + image[i+(2*col)]*kx[6] + image[i+(2*col)+2]*kx[8];
 		
-		gy = image[i]*ky[0] + image[i+1]*ky[1] + image[i+2]*ky[2]
-		   + /*image[i+col]*ky[3] + image[i+col+1]*ky[4] + image[i+col+2]*ky[5]
-		   +*/ image[i+(2*col)]*ky[6] + image[i+(2*col)+1]*ky[7] + image[i+(2*col)+2]*ky[8];
+		gy = image[i]*ky[0] + image[i+1]*ky[1]
+		   + image[i+2]*ky[2] + image[i+(2*col)]*ky[6]
+		   + image[i+(2*col)+1]*ky[7] + image[i+(2*col)+2]*ky[8];
 		
 		//g = sqrt(gx*gx + gy*gy); //change with square root algorithm
 		g = gx + gy;
 		edgeImage[j] = g;
 		
 		if(f/(col-2) == z && i > 0 && !newLine){
-			i = /*i + 3*/col*z;
+			i = col*z;
 			newLine = 1;
 			z++; //current line in a 2D type of view
 		}
@@ -144,38 +139,32 @@ void correction(int size, unsigned char *array){
 extern void delay (int millisec);
 
 int main()
-{
-	alt_printf("Hello from cpu_3!\n");
+{ 
+	alt_putstr("Hello cpu_4!\n");
 	
 	delay(50);
 	
-	unsigned char* address = (unsigned char*) SHARED_ONCHIP_BASE, *sem_3 = address+2, *local_start = address, *prev_start = address;
-	//unsigned char j = *(address+5), i = *(address+6);
-	unsigned char grayImage[560], resizedImage[140], edgeImage[90]/*, asciiImage[((38*38)/4)/4]*/;
-	//unsigned char grayImage[40*40/4], resizedImage[((40*40)/4)/4], edgeImage[((38*38)/4)/4], asciiImage[((38*38)/4)/4];
+	unsigned char* address = (unsigned char*) SHARED_ONCHIP_BASE, *sem_4 = address+3, *local_start = address, *prev_start = address;
+	unsigned char grayImage[480], resizedImage[120], edgeImage[72];
 	
 	while (TRUE) {
-		while(!(*sem_3)){} //wait for the semaphore to be released
-		*sem_3 = 0; //take the semaphore as soon as it gets released
+		while(!(*sem_4)){} //wait for the semaphore to be released
+		*sem_4 = 0; //take the semaphore as soon as it gets released
 		prev_start = address+5000;
-		unsigned char j = *(address+5), i = *(address+5002)+4;
-		unsigned char* asciiStart = address+6000+(*(address+5007)*(j-2));
-		if(*(address+5004)){
-			asciiStart = asciiStart-(j-2);
-		}
-		//alt_printf("3!\n"); //semaphore test print statement
-		//j = *(address+5);
-		//i = *(address+6);
+		unsigned char j = *(address+5), i = *(address+5003)+2;
+		unsigned char* asciiStart = address+6000+(*(address+5008)*(j-2));
+		
 		//the RGB pixels start at address+7
-		local_start = address+7+(*(prev_start)*j*3)+(*(prev_start+1)*j*3)-(2*j*3);
+		local_start = address+7+(*(prev_start)*j*3)+(*(prev_start+1)*j*3)+(*(prev_start+2)*j*3)-(2*j*3);
 		grayscale(i, j, local_start, grayImage);
 		resize(i, j, grayImage, resizedImage);
 		correction(i*i/4, resizedImage);
 		sobel(i/2,j/2, resizedImage, edgeImage);
-		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, /*asciiImage*/asciiStart);
+		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, asciiStart);
 		
-		*sem_3 = 1;
+		*sem_4 = 1;
 		delay(20);
 	}
+	
 	return 0;
 }
