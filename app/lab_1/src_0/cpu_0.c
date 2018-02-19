@@ -173,7 +173,7 @@ void toAsciiArt(int row, int col, INT8U *image, char *asciiImage){
 	int i = 0, size = row*col;
 	
 	while(i < size){
-		asciiImage[i] = asciiLevels[((int)image[i])/16];
+		asciiImage[i] = asciiLevels[((int)image[i])%16];
 		i++;
 	}
 }
@@ -241,8 +241,8 @@ void task1(void* pdata)
 	while (1)
 	{ 
 		/* Extract the x and y dimensions of the picture */
-		unsigned char j = *img_array[current_image];
-		unsigned char i = *(img_array[current_image]+1);
+		unsigned char i = *img_array[current_image];
+		unsigned char j = *(img_array[current_image]+1);
 
 		PERF_RESET(PERFORMANCE_COUNTER_0_BASE);
 		PERF_START_MEASURING (PERFORMANCE_COUNTER_0_BASE);
@@ -267,32 +267,16 @@ void task1(void* pdata)
 		
 		PERF_END(PERFORMANCE_COUNTER_0_BASE, SECTION_1);  
 		
-		//if(DEBUG){
-			//printf("---- Gray Image ----\n");
-			//int z = 0;
-			
-			//while(z < size2){
-			////grayscale (put "i < size2" as condition for the while loop)
-			//printf("%d", (int)grayImage[z]);
-			//printf("%c", ' ');
-			//if((z+1)%j == 0 && z > 0)
-				//printf("\n");
-			//z++;
-			//}
-		//}
-		
-		int ascii_y = j/2-2;
-		
 		if(DEBUG){
-			printf("---- ASCII Image ----\n");
+			printf("---- Gray Image ----");
 			int z = 0;
 			
-			while(z < size4){
-				printf("%c", asciiImage[z]);
-				printf("%c", ' ');
-				if((z+1)%ascii_y == 0 && z > 0)
-					printf("\n");
-				z++;
+			while(z < size2){
+			//grayscale (put "i < size2" as condition for the while loop)
+			printf((int)grayImage[z]+" ");
+			if((z+1)%j == 0 && z > 0)
+				printf("\n");
+			z++;
 			}
 		}
 

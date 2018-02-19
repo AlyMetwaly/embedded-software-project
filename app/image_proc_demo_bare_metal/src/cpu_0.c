@@ -190,8 +190,8 @@ int main()
 	    /* Section 1 */
 	    PERF_BEGIN(PERFORMANCE_COUNTER_0_BASE, SECTION_1);
 		
-		i = *img_array[a];
-		j = *(img_array[a]+1);
+		j = *img_array[a];
+		i = *(img_array[a]+1);
 		
 		/* Image Processing Execution */
 		int /*i = 0,*/ /*size1 = (x*3)*y,*/ size2 = i*j, size3 = i*j/4, size4 = (i/2-2)*(j/2-2);

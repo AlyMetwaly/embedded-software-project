@@ -47,7 +47,7 @@ nios2-configure-sof $CORE_DIR/$SOF.sof
 echo ""
 echo "Start NiosII terminal ..."
 
-gnome-terminal -e "nios2-terminal -i 0" &
+xterm -e "nios2-terminal -i 0" &
 
 echo ""
 echo "***********************************************"
