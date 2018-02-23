@@ -160,7 +160,7 @@ int main()
 		local_start = address+7+(*(prev_start)*j*3)-(2*j*3);
 		grayscale(i, j, local_start, grayImage);
 		resize(i, j, grayImage, resizedImage);
-		correction(i*i/4, resizedImage);
+		correction(i*j/4, resizedImage);
 		sobel(i/2,j/2, resizedImage, edgeImage);
 		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, asciiStart);
 		

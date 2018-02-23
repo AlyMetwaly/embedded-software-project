@@ -36,11 +36,14 @@ void sram2sm_p3(unsigned char* base)
 		*shared++ = *base++;	// B
 	}
 }
-
-void splitImage(unsigned char i, unsigned char j, unsigned char* shared_start){ //shared_start should be address 5000
+#if DEBUG
+void splitImage(unsigned char i, unsigned char* shared_start){ //shared_start should be address 5000
 	unsigned char lines_per_group = i/4;
-	*(shared_start+4) = 0; //center overlap flag
+	//*(shared_start+4) = 0; //center overlap flag
 	if(lines_per_group%2 == 0){ //if the division has an even result
+		/* this doesn't consider divisions that have an even result and
+		   reminder != 0 (reminder = 2 in this case), since there are
+		   no images with this characteristic in the provided set */
 		*shared_start = *(shared_start+1) = *(shared_start+2) = *(shared_start+3) = lines_per_group;
 	}
 	else{ //if the division has an odd result
@@ -51,20 +54,31 @@ void splitImage(unsigned char i, unsigned char j, unsigned char* shared_start){ 
 			*(shared_start+3) = lines_per_group-1;
 		}
 		else{
-			*(shared_start+4) = 1;
+			//*(shared_start+4) = 1;
 			*shared_start = lines_per_group+1;
 			*(shared_start+1) = lines_per_group+1;
-			*(shared_start+2) = lines_per_group+1;
+			*(shared_start+2) = lines_per_group-1;
 			*(shared_start+3) = lines_per_group+1;
 		}
 	}
 	//jump one memory location and start from shared_start+6
 	unsigned char aux = (((*shared_start)+2)/2)-2;
 	*(shared_start+6) = aux;
-	*(shared_start+7) = aux = aux+(((*shared_start+1)+4)/2)-2; //each memory location contains the sum of the lines of the previous and the current
-	*(shared_start+8) = aux = aux+(((*shared_start+2)+4)/2)-2;
-	*(shared_start+9) = aux+(((*shared_start+3)+4)/2)-2;
+	*(shared_start+7) = aux = aux+((*(shared_start+1)+4)/2)-2; //each memory location contains the sum of the lines of the previous and the current
+	*(shared_start+8) = aux = aux+((*(shared_start+2)+4)/2)-2;
+	*(shared_start+9) = aux+((*(shared_start+3)+2)/2)-2;
 }
+#else
+void splitImage(unsigned char* shared_start){
+	unsigned char i = 32, lines_per_group = i/4, aux = ((lines_per_group+2)/2)-2;
+	*shared_start = *(shared_start+1) = *(shared_start+2) = *(shared_start+3) = lines_per_group;
+	
+	*(shared_start+6) = aux;
+	*(shared_start+7) = aux = aux+((lines_per_group+4)/2)-2; //each memory location contains the sum of the lines of the previous and the current
+	*(shared_start+8) = aux = aux+((lines_per_group+4)/2)-2;
+	*(shared_start+9) = aux+((lines_per_group+2)/2)-2;
+}
+#endif
 
 int main()
 {
@@ -96,6 +110,11 @@ int main()
 	unsigned char* img_array[3] = {img1_32_32, img2_32_32, img3_32_32};
 	#endif
 	
+	if(first_exec){
+			delay(2000);
+			first_exec = 0;
+	}
+	
 	////prints to test memory extent
 	//printf("There's ");
 	//printf("%d",*smth);
@@ -118,13 +137,17 @@ int main()
 		/* Measurement here */
 		sram2sm_p3(img_array[current_image]);
 		
-		splitImage(i, j, shared+5000);
+		#if DEBUG
+		splitImage(i, shared+5000);
+		#else
+		splitImage(shared+5000);
+		#endif
 		
 		//printf("0!\n"); //semaphore test print statement
 		
 		*sem_1 = *(sem_2) = *(sem_3) = *(sem_4) = 1; //release all semaphores
 		
-		delay(20);
+		delay(2);
 		
 		while(!(done_1 && done_2 && done_3 && done_4)){
 			if(*sem_1){
@@ -146,7 +169,7 @@ int main()
 		}
 		
 		/* Print ASCII image */
-		int ascii_x = j/2-2, ascii_size = (*(shared+5009))*ascii_x;
+		int ascii_x = j/2-2, ascii_size = /*(*(shared+5009))*/(i/2-2)*ascii_x;
 		
 		if(DEBUG){
 			printf("---- ASCII Image ----\n");
@@ -170,6 +193,9 @@ int main()
 		
 		PERF_END(PERFORMANCE_COUNTER_0_BASE, SECTION_1);
 		
+		/* End Measuring */
+		PERF_STOP_MEASURING(PERFORMANCE_COUNTER_0_BASE);
+		
 		/* Print report */
 		perf_print_formatted_report
 		(PERFORMANCE_COUNTER_0_BASE,            
@@ -183,7 +209,7 @@ int main()
 	}
 	
 	/* End Measuring */
-	PERF_STOP_MEASURING(PERFORMANCE_COUNTER_0_BASE);
+	//PERF_STOP_MEASURING(PERFORMANCE_COUNTER_0_BASE);
 	
 	return 0;
 }

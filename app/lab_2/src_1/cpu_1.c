@@ -158,7 +158,7 @@ int main()
 		//the RGB pixels start at address+7
 		grayscale(i, j, address+7, grayImage);
 		resize(i, j, grayImage, resizedImage);
-		correction(i*i/4, resizedImage);
+		correction(i*j/4, resizedImage);
 		sobel(i/2,j/2, resizedImage, edgeImage);
 		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, asciiStart);
 		
