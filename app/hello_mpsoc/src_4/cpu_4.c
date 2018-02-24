@@ -84,7 +84,7 @@
 
 /* Variables */
 unsigned char ENABLE = 0;
-unsigned char hmin = 0, hmax = 0;
+int hmin = 0, hmax = 0;
 
 //unsigned char r_comp[] = {0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10, 11, 11, 11, 11, 12, 12, 12, 12, 13, 13, 13, 13, 14, 14, 14, 14, 15, 15, 15, 15, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 22, 22, 22, 22, 23, 23, 23, 23, 24, 24, 24, 24, 25, 25, 25, 25, 26, 26, 26, 26, 27, 27, 27, 27, 28, 28, 28, 28, 29, 29, 29, 29, 30, 30, 30, 30, 31, 31, 31, 31, 32, 32, 32, 32, 33, 33, 33, 33, 34, 34, 34, 34, 35, 35, 35, 35, 36, 36, 36, 36, 37, 37, 37, 37, 38, 38, 38, 38, 39, 39, 39, 39, 40, 40, 40, 40, 41, 41, 41, 41, 42, 42, 42, 42, 43, 43, 43, 43, 44, 44, 44, 44, 45, 45, 45, 45, 46, 46, 46, 46, 47, 47, 47, 47, 48, 48, 48, 48, 49, 49, 49, 49, 50, 50, 50, 50, 51, 51, 51, 51, 52, 52, 52, 52, 53, 53, 53, 53, 54, 54, 54, 54, 55, 55, 55, 55, 56, 56, 56, 56, 57, 57, 57, 57, 58, 58, 58, 58, 59, 59, 59, 59, 60, 60, 60, 60, 61, 61, 61, 61, 62, 62, 62, 62, 63, 63, 63, 63};
 
@@ -191,7 +191,7 @@ void toAsciiArt(int row, int col, unsigned char *image, unsigned char *asciiImag
 	}
 }
 
-unsigned char brightness(int size, unsigned char *min, unsigned char *max, unsigned char* array){
+unsigned char brightness(int size, int *min, int *max, unsigned char* array){
 	*min = 10000;
 	*max = -10000;
 	int i = 0;
@@ -211,7 +211,7 @@ unsigned char brightness(int size, unsigned char *min, unsigned char *max, unsig
 void correction(int size, unsigned char *array){
 	control(brightness(size, &hmin, &hmax, array));
 	if(ENABLE){
-		unsigned char sub = hmax - hmin;
+		int sub = hmax - hmin;
 		int i = 0, mul = 1;
 		if(sub <= 127){
 			if(sub > 63)
@@ -248,6 +248,7 @@ int main()
 	//unsigned char grayImage[40*40/4], resizedImage[((40*40)/4)/4], edgeImage[((38*38)/4)/4], asciiImage[((38*38)/4)/4];
 	
 	while (TRUE) {
+		//delay(3);
 		while(!(*sem_4)){} //wait for the semaphore to be released
 		*sem_4 = 0; //take the semaphore as soon as it gets released
 		prev_start = address+5000;
@@ -265,7 +266,7 @@ int main()
 		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, /*asciiImage*/asciiStart);
 		
 		*sem_4 = 1;
-		delay(2);
+		//delay(2);
 	}
 	
 	return 0;
