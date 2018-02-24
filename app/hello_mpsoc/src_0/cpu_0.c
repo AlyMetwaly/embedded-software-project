@@ -27,7 +27,7 @@ void sram2sm_p3(unsigned char* base)
 	*shared++  = size_x;
 	*shared++  = size_y;
 	*shared++  = max_col;
-	printf("The image is: %d x %d!! \n", size_x, size_y);
+	//printf("The image is: %d x %d!! \n", size_x, size_y);
 	for(y = 0; y < size_y; y++)
 	for(x = 0; x < size_x; x++)
 	{
@@ -36,6 +36,36 @@ void sram2sm_p3(unsigned char* base)
 		*shared++ = *base++;	// B
 	}
 }
+
+void sram2sm_p32(unsigned char* base)
+{
+	int x;
+	unsigned char* shared;
+
+	shared = (unsigned char*) SHARED_ONCHIP_BASE+5; //1 cell offset from the semaphores
+	unsigned int* mem = (unsigned int*) shared+3;
+
+	int size_x = *base++;
+	int size_y = *base++;
+	int max_col= *base++;
+	int size = (size_x*size_y*3)/4;
+	*shared++  = size_x;
+	*shared++  = size_y;
+	*shared++  = max_col;
+	//printf("The image is: %d x %d!! \n", size_x, size_y);
+	//for(y = 0; y < size_y; y++)
+	//for(x = 0; x < size_x; x++)
+	//{
+		//*shared++ = *base++; 	// R
+		//*shared++ = *base++;	// G
+		//*shared++ = *base++;	// B
+	//}
+	for(x = 0; x < size; x++){
+		*mem++ = (((int)*base++)<<24)|(((int)*base++)<<16)|(((int)*base++)<<8)|(*base++);
+		//*mem++ = ((int)*base++)|(((int)*base++)<<8)|(((int)*base++)<<16)|(((int)*base++)<<24);
+	}
+}
+
 #if DEBUG
 void splitImage(unsigned char i, unsigned char* shared_start){ //shared_start should be address 5000
 	unsigned char lines_per_group = i/4;
@@ -96,7 +126,8 @@ int main()
 	//unsigned char* smth = shared+5000; //used to test memory extent
 	//*smth = 42;
   
-	char current_image=0, first_exec = 1;
+	char current_image=0, first_exec = 1, shit = 0;
+	int thing = 0;
 	char done_1 = 0, done_2 = 0, done_3 = 0, done_4 = 0;
 	
 	#if DEBUG == 1
@@ -120,7 +151,7 @@ int main()
 	//printf("%d",*smth);
 	//printf(" at address 5000!\n");
   
-	while (TRUE) {
+	while (shit < 20) {
 		/* Extract the x and y dimensions of the picture */
 		unsigned char j = *img_array[current_image];
 		unsigned char i = *(img_array[current_image]+1);
@@ -147,7 +178,10 @@ int main()
 		
 		*sem_1 = *(sem_2) = *(sem_3) = *(sem_4) = 1; //release all semaphores
 		
-		delay(2);
+		//delay(1);
+		while(thing < 1000000){
+			thing++;
+		}
 		
 		while(!(done_1 && done_2 && done_3 && done_4)){
 			if(*sem_1){
@@ -206,6 +240,7 @@ int main()
 		
 		/* Increment the image pointer */
 		current_image=(current_image+1) % number_of_images;
+		shit++;
 	}
 	
 	/* End Measuring */
