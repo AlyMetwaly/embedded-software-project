@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include "system.h"
 #include "altera_avalon_pio_regs.h"
-//#include "io.h"
 #include "altera_avalon_performance_counter.h"
 #include "images.h"
 
 #define TRUE 1
-#define DEBUG 1
+#define DEBUG 0
 #define SECTION_1 1
 
 
@@ -75,7 +74,6 @@ void sram2sm_p32(unsigned char* base)
 #if DEBUG
 void splitImage(unsigned char i, unsigned char* shared_start){ //shared_start should be address 5000
 	unsigned char lines_per_group = i/4;
-	//*(shared_start+4) = 0; //center overlap flag
 	if(lines_per_group%2 == 0){ //if the division has an even result
 		/* this doesn't consider divisions that have an even result and
 		   reminder != 0 (reminder = 2 in this case), since there are
@@ -90,7 +88,6 @@ void splitImage(unsigned char i, unsigned char* shared_start){ //shared_start sh
 			*(shared_start+3) = lines_per_group-1;
 		}
 		else{
-			//*(shared_start+4) = 1;
 			*shared_start = lines_per_group+1;
 			*(shared_start+1) = lines_per_group+1;
 			*(shared_start+2) = lines_per_group-1;
@@ -123,14 +120,7 @@ int main()
 	unsigned char* shared;
 
 	shared = (unsigned char*) SHARED_ONCHIP_BASE;
-	//unsigned char* sem_1 = shared;
-	//unsigned char* sem_2 = shared+1;
-	//unsigned char* sem_3 = shared+2;
-	//unsigned char* sem_4 = shared+3;
-	//*sem_1 = *(sem_2) = *(sem_3) = *(sem_4) = 0;
-	
-	//unsigned char* smth = shared+5000; //used to test memory extent
-	//*smth = 42;
+
   
 	char current_image=0;
 	unsigned char* C1= shared;
@@ -138,7 +128,6 @@ int main()
     unsigned char* C3= shared+2;
     unsigned char* C4= shared+3;
 	
-	//char done_1 = 0, done_2 = 0, done_3 = 0, done_4 = 0;
 	
 	#if DEBUG == 1
 	/* Sequence of images for testing if the system functions properly */
@@ -151,15 +140,6 @@ int main()
 	unsigned char* img_array[3] = {img1_32_32, img2_32_32, img3_32_32};
 	#endif
 	
-	//if(first_exec){
-			//delay(2000);
-			//first_exec = 0;
-	//}
-	
-	////prints to test memory extent
-	//printf("There's ");
-	//printf("%d",*smth);
-	//printf(" at address 5000!\n");
     int counter=0;
 	while (TRUE) {
 		/* Extract the x and y dimensions of the picture */
@@ -186,15 +166,11 @@ int main()
 		#endif
 		
 		// Wait for all CPUs to come up
-	
-	
 	while(!( STATE_1 == *C4)
 	&&	( STATE_1 == *C3) 
 	&&  ( STATE_1 == *C2) 
 	&&	( STATE_1 == *C1))
 	{}
-		
-		
 		//printf("STATE 1 Passed!\n");
 		
 		// Send 4 Signals Work 1
@@ -209,36 +185,6 @@ int main()
 	&&  ( STATE_3== *C2) 
 	&&	( STATE_3== *C1))
 	{}
-		
-	
-		
-		//printf("0!\n"); //semaphore test print statement
-		
-		//*sem_1 = *(sem_2) = *(sem_3) = *(sem_4) = 1; //release all semaphores
-		
-		//delay(1);
-	
-		
-		
-		//while(!(done_1 && done_2 && done_3 && done_4)){
-			//if(*sem_1){
-				//*sem_1 = 0;
-				//done_1 = 1;
-			//}
-			//if(*sem_2){
-				//*sem_2 = 0;
-				//done_2 = 1;
-			//}
-			//if(*sem_3){
-				//*sem_3 = 0;
-				//done_3 = 1;
-			//}
-			//if(*sem_4){
-				//*sem_4 = 0;
-				//done_4 = 1;
-			//}
-		//}
-		
 		/* Print ASCII image */
 		int ascii_x = j/2-2, ascii_size = /*(*(shared+5009))*/(i/2-2)*ascii_x;
 		
@@ -256,11 +202,6 @@ int main()
 			
 			printf("\n\n");
 		}
-		
-		//delay(1000); //semaphore test wait
-		
-		/* Reset registers of completed CPUs */
-		//done_1 = done_2 = done_3 = done_4 = 0;
 		
 		PERF_END(PERFORMANCE_COUNTER_0_BASE, SECTION_1);
 		
