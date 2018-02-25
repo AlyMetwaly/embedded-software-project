@@ -151,7 +151,7 @@ int main()
 	//printf("%d",*smth);
 	//printf(" at address 5000!\n");
   
-	while (shit < 20) {
+	while (TRUE) {
 		/* Extract the x and y dimensions of the picture */
 		unsigned char j = *img_array[current_image];
 		unsigned char i = *(img_array[current_image]+1);
@@ -240,7 +240,7 @@ int main()
 		
 		/* Increment the image pointer */
 		current_image=(current_image+1) % number_of_images;
-		shit++;
+		//shit++;
 	}
 	
 	/* End Measuring */

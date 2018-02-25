@@ -67,7 +67,7 @@ void sobel(int x2, int y2, unsigned char* image, unsigned char* edgeImage){
 	//int kx[9] = {-1,0,1,-2,0,2,-1,0,1};
 	//int ky[9] = {1,2,1,0,0,0,-1,-2,-1};
 	int i = 0, j = 0, z = 1, f = 1, /*size = x2*y2,*/ limit = (x2-2)*(y2-2)/*size - 2*y2*/, col = y2;
-	unsigned char gx = 0, gy = 0, g = 0;
+	int gx = 0, gy = 0, g = 0;
 	int newLine = 1;
 	while(j < limit){
 		//gx = image[i]*kx[0] + /*image[i+1]*kx[1] +*/ image[i+2]*kx[2]
@@ -86,7 +86,9 @@ void sobel(int x2, int y2, unsigned char* image, unsigned char* edgeImage){
 		
 		//g = sqrt(gx*gx + gy*gy); //change with square root algorithm
 		g = gx + gy;
-		edgeImage[j] = g;
+		if(g > 255)
+			g = 255;
+		edgeImage[j] = (unsigned char) g;
 		
 		if(f/(col-2) == z && i > 0 && !newLine){
 			i = /*i + 3*/col*z;
