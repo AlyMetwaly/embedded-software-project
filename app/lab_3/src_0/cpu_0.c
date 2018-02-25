@@ -9,12 +9,11 @@
 #define DEBUG 1
 #define SECTION_1 1
 
-#define STATE_0 0
+
 #define STATE_1 1
 #define STATE_2 2
 #define STATE_3 3
-#define STATE_4 4
-#define STATE_5 5
+
 
 unsigned char ENABLE = 0;
 unsigned char hmin = 0, hmax = 0;
@@ -166,42 +165,7 @@ int main()
 		/* Extract the x and y dimensions of the picture */
 		unsigned char j = *img_array[current_image];
 		unsigned char i = *(img_array[current_image]+1);
-		// Wait for all CPUs to come up
-	
-	while(!( STATE_1 == *C1)
-	&&	( STATE_1 == *C2) 
-	&&  ( STATE_1 == *C3) 
-	&&	( STATE_1 == *C4))
-	{}
 		
-		
-		//printf("STATE 1 Passed!\n");
-		
-		// Send 4 Signals Work 1
-		*C1=STATE_2;
-		*C2=STATE_2;
-		*C3=STATE_2;
-		*C4=STATE_2;
-		
-		/* Wait for all Cores to finish 1 before Sobel*/
-	while(!( STATE_3 == *C1)
-	&&	( STATE_3== *C2) 
-	&&  ( STATE_3== *C3) 
-	&&	( STATE_3== *C4))
-	{}
-		
-		/* Send Signals Work 2 */
-		*C1=STATE_4;
-		*C2=STATE_4;
-		*C3=STATE_4;
-		*C4=STATE_4;
-		
-		/* Wait for all to finish to take the processed image SRAM*/
-		while(!( STATE_5 == *C1)
-	&&	( STATE_5== *C2) 
-	&&  ( STATE_5== *C3) 
-	&&	( STATE_5== *C4))
-	{}
 		
 		/* Reset Performance Counter */
 	    PERF_RESET(PERFORMANCE_COUNTER_0_BASE);  
@@ -220,6 +184,33 @@ int main()
 		#else
 		splitImage(shared+5000);
 		#endif
+		
+		// Wait for all CPUs to come up
+	
+	
+	while(!( STATE_1 == *C4)
+	&&	( STATE_1 == *C3) 
+	&&  ( STATE_1 == *C2) 
+	&&	( STATE_1 == *C1))
+	{}
+		
+		
+		//printf("STATE 1 Passed!\n");
+		
+		// Send 4 Signals Work 1
+		*C1=STATE_2;
+		*C2=STATE_2;
+		*C3=STATE_2;
+		*C4=STATE_2;
+		
+	/* Wait for all to finish to take the processed image SRAM*/
+	while(!( STATE_3 == *C4)
+	&&	( STATE_3== *C3) 
+	&&  ( STATE_3== *C2) 
+	&&	( STATE_3== *C1))
+	{}
+		
+	
 		
 		//printf("0!\n"); //semaphore test print statement
 		

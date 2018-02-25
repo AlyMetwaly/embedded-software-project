@@ -82,12 +82,11 @@
 #include "system.h"
 #define TRUE 1
 
-#define STATE_0 0 //Default State
+
 #define STATE_1 1 //Wait for Syn 1
 #define STATE_2 2 //Do Grayscale & Resize
 #define STATE_3 3 //Wait for Syn 2
-#define STATE_4 4 //Do Sobel & Ascii
-#define STATE_5 5 //Wait for Syn 3 & send Processed Image to SRAM
+
 
 /* Variables */
 unsigned char ENABLE = 0;
@@ -249,14 +248,15 @@ int main()
 	
 	delay(50);
 	
-	unsigned char* address = (unsigned char*) SHARED_ONCHIP_BASE, *sem_4 = address+3, *local_start = address, *prev_start = address;
+	unsigned char* address = (unsigned char*) SHARED_ONCHIP_BASE, *local_start = address, *prev_start = address;
 	//unsigned char j = *(address+5), i = *(address+6);
 	unsigned char grayImage[480], resizedImage[120], edgeImage[72]/*, asciiImage[((38*38)/4)/4]*/;
 	//unsigned char grayImage[40*40/4], resizedImage[((40*40)/4)/4], edgeImage[((38*38)/4)/4], asciiImage[((38*38)/4)/4];
 	unsigned char shared = (unsigned char*) SHARED_ONCHIP_BASE+5; //
-	unsigned char* C4= shared;
+	unsigned char* C4= address+3;
+	
 	while (TRUE) {
-		*C4==STATE_1;
+		*C4=STATE_1;
 		//delay(3);
 		//while(!(*sem_4)){} //wait for the semaphore to be released
 		//*sem_4 = 0; //take the semaphore as soon as it gets released
@@ -267,23 +267,16 @@ int main()
 		//j = *(address+5);
 		//i = *(address+6);
 		//the RGB pixels start at address+7
-		// Wait for signal work 1
+		// Wait for working signal
 		while(!STATE_2 == *C4)
 		{}
-		local_start = address+7+(*(prev_start)*j*3)+(*(prev_start+1)*j*3)+(*(prev_start+2)*j*3)-(2*j*3);
+		local_start = address+8+(*(prev_start)*j*3)+(*(prev_start+1)*j*3)+(*(prev_start+2)*j*3)-(2*j*3);
 		grayscale(i, j, local_start, grayImage);
 		resize(i, j, grayImage, resizedImage);
-		*C4==STATE_3;
-		// Wait for signal work 2
-		while(!STATE_4 == *C4)
-		{}
-		// all cpus finished grayscale and resize
-		// do edge detection
-		// do ascii
 		correction(i*j/4, resizedImage);
 		sobel(i/2,j/2, resizedImage, edgeImage);
 		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, /*asciiImage*/asciiStart);
-		*C4==STATE_5;
+		*C4=STATE_3;
 		//*sem_4 = 1;
 		////delay(2);
 	}

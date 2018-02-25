@@ -5,12 +5,11 @@
 
 #define TRUE 1
 
-#define STATE_0 0 //Default State
+
 #define STATE_1 1 //Wait for Syn 1
 #define STATE_2 2 //Do Grayscale & Resize
 #define STATE_3 3 //Wait for Syn 2
-#define STATE_4 4 //Do Sobel & Ascii
-#define STATE_5 5 //Wait for Syn 3 & send Processed Image to SRAM
+
 //#define DEBUG 0
 
 //#define SECTION_1 1
@@ -116,7 +115,7 @@ void sobel(int x2, int y2, unsigned char* image, unsigned char* edgeImage){
 }
 
 void toAsciiArt(int row, int col, unsigned char *image, unsigned char *asciiImage){
-	unsigned char asciiLevels[16] = {'0','.',':','-','=','+','/','t','z','U','w','*','0','#','%','@'};
+	unsigned char asciiLevels[16] = {' ','.',':','-','=','+','/','t','z','U','w','*','0','#','%','@'};
 	
 	int i = 0, size = row*col;
 	
@@ -178,14 +177,15 @@ int main()
 	
 	delay(50);
 	
-	unsigned char* address = (unsigned char*) SHARED_ONCHIP_BASE, *sem_1 = address;
+	unsigned char* address = (unsigned char*) SHARED_ONCHIP_BASE;
 	unsigned char grayImage[480], resizedImage[120], edgeImage[72]/*, asciiImage[((38*38)/4)/4]*/;
 	//unsigned char grayImage[40*40/4], resizedImage[((40*40)/4)/4], edgeImage[((38*38)/4)/4];
 	unsigned char shared = (unsigned char*) SHARED_ONCHIP_BASE+5; //
-	unsigned char* C1= shared;
+	unsigned char* C1= address;
 	
 	while (TRUE) {
-		*C1==STATE_1;
+		*C1=STATE_1;
+		
 		//while(!(*sem_1)){} //wait for the semaphore to be released
 		//*sem_1 = 0; //take the semaphore as soon as it gets released
 		unsigned char j = *(address+5), i = *(address+5000)+2;
@@ -195,22 +195,15 @@ int main()
 		//i = *(address+6);
 		//the RGB pixels start at address+7
 		
-		// Wait for signal work 1
+		// Wait for working signal  
 		while(!STATE_2 == *C1)
 		{}
-		grayscale(i, j, address+7, grayImage);
+		grayscale(i, j, address+8, grayImage);
 		resize(i, j, grayImage, resizedImage);
-		*C1==STATE_3;
-		// Wait for signal work 2
-		while(!STATE_4 == *C1)
-		{}
-		// all cpus finished grayscale and resize
-		// do edge detection
-		// do ascii
 		correction(i*j/4, resizedImage);
 		sobel(i/2,j/2, resizedImage, edgeImage);
 		toAsciiArt((i/2)-2, (j/2)-2, edgeImage, /*asciiImage*/asciiStart);
-		*C1==STATE_5;
+		*C1=STATE_3;
 		//*sem_1 = 1; //release the semaphore right after execution
 		////delay(2);
 	}
