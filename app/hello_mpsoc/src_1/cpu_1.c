@@ -112,7 +112,7 @@ void sobel(int x2, int y2, unsigned char* image, unsigned char* edgeImage){
 }
 
 void toAsciiArt(int row, int col, unsigned char *image, unsigned char *asciiImage){
-	unsigned char asciiLevels[16] = {'0','.',':','-','=','+','/','t','z','U','w','*','0','#','%','@'};
+	unsigned char asciiLevels[16] = {' ','.',':','-','=','+','/','t','z','U','w','*','0','#','%','@'};
 	
 	int i = 0, size = row*col;
 	
@@ -187,7 +187,7 @@ int main()
 		//j = *(address+5);
 		//i = *(address+6);
 		//the RGB pixels start at address+7
-		grayscale(i, j, address+7, grayImage);
+		grayscale(i, j, address+8, grayImage);
 		resize(i, j, grayImage, resizedImage);
 		correction(i*j/4, resizedImage);
 		sobel(i/2,j/2, resizedImage, edgeImage);
