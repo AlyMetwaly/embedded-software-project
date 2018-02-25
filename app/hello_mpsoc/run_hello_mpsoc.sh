@@ -127,7 +127,7 @@ for (( i = 0; i < $NODES; i++ ))  do
 echo ""
 echo "Start NiosII terminal ..."
 
-gnome-terminal -e "nios2-terminal -i $i" &
+xterm -title "$CPU$i" -e "nios2-terminal -i $i" &
 
 done
 
