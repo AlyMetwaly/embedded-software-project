@@ -186,7 +186,7 @@ int main()
 		//j = *(address+5);
 		//i = *(address+6);
 		//the RGB pixels start at address+7
-		local_start = address+7+(*(prev_start)*j*3)+(*(prev_start+1)*j*3)-(2*j*3);
+		local_start = address+8+(*(prev_start)*j*3)+(*(prev_start+1)*j*3)-(2*j*3);
 		grayscale(i, j, local_start, grayImage);
 		resize(i, j, grayImage, resizedImage);
 		correction(i*j/4, resizedImage);
