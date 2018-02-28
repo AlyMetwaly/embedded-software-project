@@ -134,7 +134,7 @@ readAllPPM paths = do
 -- returns a ready image. Useful for testing the image processing
 -- functions from the "ImageProcessing" module.
 ppm2img str = let (x, y, ppm) = readPPM str
-              in  toImage x y ppm
+              in  toImage (x * 3) y ppm
 
 -- | Prints out the contents of an image.
 printImage :: Show a => Vector (Vector a) -> IO ()
