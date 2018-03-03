@@ -15,7 +15,7 @@ module Main where
 import IL2212.TestBench
 import System.Environment
 import System.Directory
-import Data.List (isSuffixOf)
+import Data.List (isSuffixOf, sort)
 
 -- | The main function, calling the testbench for the
 -- 'ImageProcessing.imageProcessing' process network.
@@ -26,7 +26,7 @@ import Data.List (isSuffixOf)
 main = do
   args  <- getArgs
   files <- listDirectory (head args)
-  let ppmFiles = filter (isSuffixOf ".ppm") files
+  let ppmFiles = sort $ filter (isSuffixOf ".ppm") files
       ppmFilePaths = map (\f->head args ++ "/" ++ f) ppmFiles
   if null ppmFilePaths
     then error "the directory does not contain PPM files"
