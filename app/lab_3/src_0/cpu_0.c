@@ -2,10 +2,11 @@
 #include "system.h"
 #include "altera_avalon_pio_regs.h"
 #include "altera_avalon_performance_counter.h"
-#include "images.h"
+//#include "images.h" //uncomment to use the old images
+#include "new_images.h"
 
 #define TRUE 1
-#define DEBUG 1
+#define DEBUG 0
 #define SECTION_1 1
 
 
@@ -57,17 +58,9 @@ void sram2sm_p32(unsigned char* base)
 	*shared++  = size_x;
 	*shared++  = size_y;
 	*shared++  = max_col;
-	//printf("The image is: %d x %d!! \n", size_x, size_y);
-	//for(y = 0; y < size_y; y++)
-	//for(x = 0; x < size_x; x++)
-	//{
-		//*shared++ = *base++; 	// R
-		//*shared++ = *base++;	// G
-		//*shared++ = *base++;	// B
-	//}
+	
 	for(x = 0; x < size; x++){
 		*mem++ = (((int)*base++)<<24)|(((int)*base++)<<16)|(((int)*base++)<<8)|(*base++);
-		//*mem++ = ((int)*base++)|(((int)*base++)<<8)|(((int)*base++)<<16)|(((int)*base++)<<24);
 	}
 }
 
@@ -129,26 +122,35 @@ int main()
     unsigned char* C4= shared+3;
 	
 	
-	#if DEBUG == 1
-	/* Sequence of images for testing if the system functions properly */
-	char number_of_images=10;
-	unsigned char* img_array[10] = {img1_24_24, img1_32_22, img1_32_32, img1_40_28, img1_40_40, 
-			img2_24_24, img2_32_22, img2_32_32, img2_40_28, img2_40_40 };
-	#else
-	/* Sequence of images for measuring performance */
-	char number_of_images=3;
-	unsigned char* img_array[3] = {img1_32_32, img2_32_32, img3_32_32};
-	#endif
+	/* old images - uncomment to use */
+	//#if DEBUG == 0
+	///* Sequence of images for testing if the system functions properly */
+	//char number_of_images=10;
+	//unsigned char* img_array[10] = {img1_24_24, img1_32_22, img1_32_32, img1_40_28, img1_40_40, 
+			//img2_24_24, img2_32_22, img2_32_32, img2_40_28, img2_40_40 };
+	//#else
+	///* Sequence of images for measuring performance */
+	//char number_of_images=3;
+	//unsigned char* img_array[3] = {img1_32_32, img2_32_32, img3_32_32};
+	//#endif
+	
+	unsigned char asciiImage[324];
 	
     int counter=0;
-	while (TRUE) {
+    
+    /* Reset Performance Counter */
+	PERF_RESET(PERFORMANCE_COUNTER_0_BASE);
+    
+	while (counter < 500) {
 		/* Extract the x and y dimensions of the picture */
-		unsigned char j = *img_array[current_image];
-		unsigned char i = *(img_array[current_image]+1);
+		//unsigned char j = *img_array[current_image]; //old images
+		//unsigned char i = *(img_array[current_image]+1); //old images
+		unsigned char j = *sequence1[current_image];
+		unsigned char i = *(sequence1[current_image]+1);
 		
 		
-		/* Reset Performance Counter */
-	    PERF_RESET(PERFORMANCE_COUNTER_0_BASE);  
+		///* Reset Performance Counter */
+	    //PERF_RESET(PERFORMANCE_COUNTER_0_BASE);  
 	
 	    /* Start Measuring */
 	    PERF_START_MEASURING (PERFORMANCE_COUNTER_0_BASE);
@@ -157,7 +159,7 @@ int main()
 	    PERF_BEGIN(PERFORMANCE_COUNTER_0_BASE, SECTION_1);
 		
 		/* Measurement here */
-		sram2sm_p3(img_array[current_image]);
+		sram2sm_p3(sequence1[current_image]);
 		
 		#if DEBUG
 		splitImage(i, shared+5000);
@@ -166,11 +168,11 @@ int main()
 		#endif
 		
 		// Wait for all CPUs to come up
-	while(!( STATE_1 == *C4)
-	&&	( STATE_1 == *C3) 
-	&&  ( STATE_1 == *C2) 
-	&&	( STATE_1 == *C1))
-	{}
+		while(!( STATE_1 == *C4)
+		&&	( STATE_1 == *C3) 
+		&&  ( STATE_1 == *C2) 
+		&&	( STATE_1 == *C1))
+		{}
 		//printf("STATE 1 Passed!\n");
 		
 		// Send 4 Signals Work 1
@@ -179,51 +181,61 @@ int main()
 		*C3=STATE_2;
 		*C4=STATE_2;
 		
-	/* Wait for all to finish to take the processed image SRAM*/
-	while(!( STATE_3 == *C4)
-	&&	( STATE_3== *C3) 
-	&&  ( STATE_3== *C2) 
-	&&	( STATE_3== *C1))
-	{}
-		/* Print ASCII image */
-		int ascii_x = j/2-2, ascii_size = /*(*(shared+5009))*/(i/2-2)*ascii_x;
+		/* Wait for all to finish to take the processed image SRAM*/
+		while(!( STATE_3 == *C4)
+		&&	( STATE_3== *C3) 
+		&&  ( STATE_3== *C2) 
+		&&	( STATE_3== *C1))
+		{}
 		
-		if(DEBUG){
-			printf("---- ASCII Image ----\n");
-			int z = 0;
-			
-			while(z < /*size4*/ascii_size){
-				printf("%c", /*asciiImage[z]*/*(shared+6000+z));
-				printf("%c", ' ');
-				if((z+1)%ascii_x == 0 && z > 0)
-					printf("\n");
-				z++;
-			}
-			
-			printf("\n\n");
+		/* Write the ASCII image back to SRAM */
+		int ascii_x = j/2-2, ascii_size = /*(*(shared+5009))*/(i/2-2)*ascii_x;
+		int z = 0;
+		
+		while(z < ascii_size){
+			asciiImage[z] = *(shared+6000+z);
+			z++;
 		}
 		
-		PERF_END(PERFORMANCE_COUNTER_0_BASE, SECTION_1);
+		/* Print ASCII image */
+		#if DEBUG
+		printf("---- ASCII Image ----\n");
+		z = 0;
 		
-		/* End Measuring */
-		PERF_STOP_MEASURING(PERFORMANCE_COUNTER_0_BASE);
+		while(z < /*size4*/ascii_size){
+			printf("%c", asciiImage[z]);
+			printf("%c", ' ');
+			if((z+1)%ascii_x == 0 && z > 0)
+				printf("\n");
+			z++;
+		}
 		
-		/* Print report */
-		perf_print_formatted_report
-		(PERFORMANCE_COUNTER_0_BASE,            
-		ALT_CPU_FREQ,        // defined in "system.h"
-		1,                   // How many sections to print
-		"Section 1"        // Display-name of section(s).
-		);   
+		printf("\n\n");
+		#endif
 		
 		/* Increment the image pointer */
-		current_image=(current_image+1) % number_of_images;
+		//current_image=(current_image+1) % number_of_images;
+		current_image=(current_image+1) % sequence1_length;
 		counter++;
 		
 	}
 	
+	PERF_END(PERFORMANCE_COUNTER_0_BASE, SECTION_1);
+		
 	/* End Measuring */
-	//PERF_STOP_MEASURING(PERFORMANCE_COUNTER_0_BASE);
+	PERF_STOP_MEASURING(PERFORMANCE_COUNTER_0_BASE);
+	
+	double perf = (1/((double)perf_get_section_time(PERFORMANCE_COUNTER_0_BASE,1)/ALT_CPU_FREQ))*500;
+	
+	printf("Throughput: %d images/sec\n", (int)perf);
+	
+	/* Print report */
+	perf_print_formatted_report
+	(PERFORMANCE_COUNTER_0_BASE,            
+	ALT_CPU_FREQ,        // defined in "system.h"
+	1,                   // How many sections to print
+	"Section 1"        // Display-name of section(s).
+	);   
 	
 	return 0;
 }
